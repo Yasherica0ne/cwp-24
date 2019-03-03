@@ -1,0 +1,77 @@
+<html>
+
+<head>
+    <title>cwp-24</title>
+</head>
+<style>
+    .room {
+        width: 30vw;
+        border-right: 3px solid black;
+        border-top: 3px solid black;
+        display: inline-block;
+        margin-top: 5vh;
+    }
+</style>
+
+<body>
+
+    <div id="CurrencyData"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js">
+    </script>
+
+    <script type="text/javascript">
+        const socket = io.connect('/');
+        const data = {
+            currency: 'EUR',
+            interval: 3000
+        };
+        socket.emit('setData', data);
+
+        socket.on('btc', currency => {
+            document.getElementById('CurrencyData').innerHTML = `${currency.symbol} sell: ${currency.sell} buy: ${currency.buy}`;
+        });
+
+        socket.on('getMessage', messageObj => {
+            const { message, room } = messageObj
+            document.getElementById(`${room}Room`).innerHTML += message + '<br />';
+        });
+
+        function sendMessage(room) {
+            const message = document.getElementById(`${room}Message`).value;
+            document.getElementById(`${room}Message`).value = '';
+            const messageObj = {
+                message,
+                room
+            }
+            socket.emit('sendMessage', messageObj);
+        }
+
+        function changeCurrency() {
+            const currency = document.getElementById('Currency').value;
+            socket.emit('setCurrency', currency);
+        }
+
+        function changeInterval() {
+            const interval = document.getElementById('Interval').value;
+            socket.emit('setinterval', interval);
+        }
+    </script>
+    <input id="Currency" type="text" placeholder="Currency" /><button onclick="changeCurrency()">Change
+        currency</button>
+    <br />
+    <input id="Interval" type="text" placeholder="Interval in seconds" /><button onclick="changeInterval()">Change
+        interval</button>
+    <br />
+    <div class="room">
+        <div id="SellRoom">Sell room<br /></div>
+        <input type="text" id="SellMessage" />
+        <button onclick="sendMessage('Sell')">Send message</button>
+    </div>
+    <div class="room">
+        <div id="BuyRoom">Buy room<br /></div>
+        <input type="text" id="BuyMessage" />
+        <button onclick="sendMessage('Buy')">Send message</button>
+    </div>
+</body>
+
+</html>
